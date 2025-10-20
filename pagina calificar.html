@@ -1,0 +1,564 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
+    <title>Sistema de Votación</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 10px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            max-width: 600px;
+            width: 100%;
+            padding: 20px;
+        }
+
+        .image-container {
+            width: 100%;
+            height: 250px;
+            border-radius: 15px;
+            overflow: hidden;
+            margin-bottom: 20px;
+            background: #f0f0f0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .image-container img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .stats-overview {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 20px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #f0f0f0;
+            flex-wrap: wrap;
+        }
+
+        .average-rating {
+            text-align: center;
+            min-width: 100px;
+        }
+
+        .average-number {
+            font-size: 40px;
+            font-weight: bold;
+            color: #333;
+            line-height: 1;
+        }
+
+        .average-stars {
+            color: #ffd700;
+            font-size: 20px;
+            margin: 5px 0;
+        }
+
+        .total-reviews {
+            color: #666;
+            font-size: 13px;
+        }
+
+        .rating-distribution {
+            flex: 1;
+            min-width: 200px;
+        }
+
+        .rating-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 6px;
+        }
+
+        .rating-row:last-child {
+            margin-bottom: 0;
+        }
+
+        .rating-label {
+            font-size: 13px;
+            color: #666;
+            width: 45px;
+            display: flex;
+            align-items: center;
+            gap: 2px;
+        }
+
+        .rating-bar-container {
+            flex: 1;
+            height: 8px;
+            background: #e0e0e0;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .rating-bar {
+            height: 100%;
+            background: #ffd700;
+            transition: width 0.5s ease;
+        }
+
+        .rating-count {
+            font-size: 13px;
+            color: #666;
+            width: 35px;
+            text-align: right;
+        }
+
+        .rating-section {
+            text-align: center;
+            padding-top: 20px;
+            border-top: 2px solid #f0f0f0;
+        }
+
+        .rating-section h3 {
+            color: #333;
+            margin-bottom: 15px;
+            font-size: 20px;
+        }
+
+        .stars {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+        }
+
+        .star {
+            font-size: 45px;
+            cursor: pointer;
+            color: #ddd;
+            transition: all 0.2s;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .star:hover,
+        .star.active {
+            color: #ffd700;
+            transform: scale(1.15);
+        }
+
+        .star:active {
+            transform: scale(1.05);
+        }
+
+        .rating-result {
+            color: #667eea;
+            font-weight: 600;
+            font-size: 16px;
+            min-height: 25px;
+            margin-bottom: 20px;
+        }
+
+        .btn-upload {
+            background: #667eea;
+            color: white;
+            padding: 14px 35px;
+            border: none;
+            border-radius: 10px;
+            font-size: 17px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+            -webkit-tap-highlight-color: transparent;
+            width: 100%;
+            max-width: 300px;
+        }
+
+        .btn-upload:hover {
+            background: #5568d3;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
+        }
+
+        .btn-upload:active {
+            transform: translateY(0);
+        }
+
+        .btn-upload:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .loading {
+            display: none;
+            color: #667eea;
+            margin-top: 10px;
+            font-size: 14px;
+        }
+
+        /* Media queries para tablets */
+        @media (max-width: 768px) {
+            .container {
+                padding: 25px;
+            }
+
+            .image-container {
+                height: 220px;
+            }
+
+            .average-number {
+                font-size: 36px;
+            }
+
+            .star {
+                font-size: 40px;
+            }
+        }
+
+        /* Media queries para móviles */
+        @media (max-width: 480px) {
+            body {
+                padding: 5px;
+            }
+
+            .container {
+                padding: 15px;
+                border-radius: 15px;
+            }
+
+            .image-container {
+                height: 180px;
+                margin-bottom: 15px;
+                border-radius: 10px;
+            }
+
+            .stats-overview {
+                flex-direction: column;
+                gap: 15px;
+                margin-bottom: 15px;
+                padding-bottom: 15px;
+            }
+
+            .average-rating {
+                width: 100%;
+            }
+
+            .average-number {
+                font-size: 42px;
+            }
+
+            .average-stars {
+                font-size: 22px;
+            }
+
+            .rating-distribution {
+                width: 100%;
+            }
+
+            .rating-section {
+                padding-top: 15px;
+            }
+
+            .rating-section h3 {
+                font-size: 18px;
+                margin-bottom: 12px;
+            }
+
+            .stars {
+                gap: 8px;
+            }
+
+            .star {
+                font-size: 38px;
+            }
+
+            .rating-result {
+                font-size: 15px;
+                margin-bottom: 15px;
+            }
+
+            .btn-upload {
+                width: 100%;
+                max-width: 100%;
+                padding: 13px 30px;
+                font-size: 16px;
+            }
+        }
+
+        /* Para pantallas muy pequeñas */
+        @media (max-width: 360px) {
+            .container {
+                padding: 12px;
+            }
+
+            .image-container {
+                height: 160px;
+            }
+
+            .average-number {
+                font-size: 38px;
+            }
+
+            .star {
+                font-size: 34px;
+                gap: 6px;
+            }
+
+            .rating-section h3 {
+                font-size: 17px;
+            }
+
+            .btn-upload {
+                padding: 12px 25px;
+                font-size: 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="image-container">
+            <img src="proyecto1.jpg" alt="Proyecto 1">
+        </div>
+
+        <!-- Estadísticas estilo Play Store -->
+        <div class="stats-overview">
+            <div class="average-rating">
+                <div class="average-number" id="averageRating">0.0</div>
+                <div class="average-stars" id="averageStars">☆☆☆☆☆</div>
+                <div class="total-reviews" id="totalReviews">0 calificaciones</div>
+            </div>
+
+            <div class="rating-distribution">
+                <div class="rating-row">
+                    <div class="rating-label">5 ★</div>
+                    <div class="rating-bar-container">
+                        <div class="rating-bar" id="bar5" style="width: 0%"></div>
+                    </div>
+                    <div class="rating-count" id="count5">0</div>
+                </div>
+                <div class="rating-row">
+                    <div class="rating-label">4 ★</div>
+                    <div class="rating-bar-container">
+                        <div class="rating-bar" id="bar4" style="width: 0%"></div>
+                    </div>
+                    <div class="rating-count" id="count4">0</div>
+                </div>
+                <div class="rating-row">
+                    <div class="rating-label">3 ★</div>
+                    <div class="rating-bar-container">
+                        <div class="rating-bar" id="bar3" style="width: 0%"></div>
+                    </div>
+                    <div class="rating-count" id="count3">0</div>
+                </div>
+                <div class="rating-row">
+                    <div class="rating-label">2 ★</div>
+                    <div class="rating-bar-container">
+                        <div class="rating-bar" id="bar2" style="width: 0%"></div>
+                    </div>
+                    <div class="rating-count" id="count2">0</div>
+                </div>
+                <div class="rating-row">
+                    <div class="rating-label">1 ★</div>
+                    <div class="rating-bar-container">
+                        <div class="rating-bar" id="bar1" style="width: 0%"></div>
+                    </div>
+                    <div class="rating-count" id="count1">0</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sección para votar -->
+        <div class="rating-section">
+            <h3>Califica este proyecto</h3>
+            <div class="stars" id="stars">
+                <span class="star" data-rating="1">★</span>
+                <span class="star" data-rating="2">★</span>
+                <span class="star" data-rating="3">★</span>
+                <span class="star" data-rating="4">★</span>
+                <span class="star" data-rating="5">★</span>
+            </div>
+            <div class="rating-result" id="ratingResult"></div>
+            <button class="btn-upload" id="uploadBtn" onclick="uploadRating()">Subir</button>
+            <div class="loading" id="loading">Enviando...</div>
+        </div>
+    </div>
+
+    <script>
+        // URL de Google Apps Script configurada
+        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxobS_r5Fg16icQC0nTY1Sr7eVmtzVkedKFmaBZZB8oVjYQuNgkyXJdqRNewFwKcHBAKQ/exec';
+        
+        // Nombre del proyecto (puedes cambiarlo para cada proyecto)
+        const PROJECT_NAME = 'Proyecto 1';
+
+        let currentRating = 0;
+        const stars = document.querySelectorAll('.star');
+        const ratingResult = document.getElementById('ratingResult');
+        const uploadBtn = document.getElementById('uploadBtn');
+        const loading = document.getElementById('loading');
+
+        // Cargar estadísticas al iniciar
+        loadStats();
+
+        stars.forEach(star => {
+            star.addEventListener('click', function() {
+                currentRating = parseInt(this.getAttribute('data-rating'));
+                updateStars();
+                ratingResult.textContent = `Tu calificación: ${currentRating} ${currentRating === 1 ? 'estrella' : 'estrellas'}`;
+            });
+
+            star.addEventListener('mouseenter', function() {
+                const rating = parseInt(this.getAttribute('data-rating'));
+                highlightStars(rating);
+            });
+        });
+
+        document.getElementById('stars').addEventListener('mouseleave', function() {
+            highlightStars(currentRating);
+        });
+
+        function highlightStars(rating) {
+            stars.forEach(star => {
+                const starRating = parseInt(star.getAttribute('data-rating'));
+                if (starRating <= rating) {
+                    star.classList.add('active');
+                } else {
+                    star.classList.remove('active');
+                }
+            });
+        }
+
+        function updateStars() {
+            highlightStars(currentRating);
+        }
+
+        function getStarDisplay(rating) {
+            const fullStars = Math.floor(rating);
+            const hasHalf = rating % 1 >= 0.5;
+            let stars = '★'.repeat(fullStars);
+            if (hasHalf) stars += '½';
+            const emptyStars = 5 - Math.ceil(rating);
+            stars += '☆'.repeat(emptyStars);
+            return stars;
+        }
+
+        async function loadStats() {
+            if (SCRIPT_URL === 'TU_URL_DE_GOOGLE_SCRIPT_AQUI') {
+                console.log('Script URL no configurada');
+                return;
+            }
+
+            try {
+                const url = SCRIPT_URL + '?proyecto=' + encodeURIComponent(PROJECT_NAME);
+                console.log('Cargando estadísticas desde:', url);
+                
+                const response = await fetch(url);
+                
+                if (!response.ok) {
+                    throw new Error('Error en la respuesta: ' + response.status);
+                }
+                
+                const data = await response.json();
+                console.log('Estadísticas recibidas:', data);
+                
+                updateStatsDisplay(data);
+            } catch (error) {
+                console.error('Error al cargar estadísticas:', error);
+                updateStatsDisplay({
+                    counts: {1: 0, 2: 0, 3: 0, 4: 0, 5: 0},
+                    total: 0,
+                    average: 0
+                });
+            }
+        }
+
+        function updateStatsDisplay(data) {
+            const counts = data.counts || {1: 0, 2: 0, 3: 0, 4: 0, 5: 0};
+            const total = data.total || 0;
+            const average = data.average || 0;
+
+            document.getElementById('averageRating').textContent = average.toFixed(1);
+            document.getElementById('averageStars').textContent = getStarDisplay(average);
+            document.getElementById('totalReviews').textContent = `${total} ${total === 1 ? 'calificación' : 'calificaciones'}`;
+
+            for (let i = 1; i <= 5; i++) {
+                const count = counts[i] || 0;
+                const percentage = total > 0 ? (count / total * 100) : 0;
+                
+                document.getElementById('count' + i).textContent = count;
+                document.getElementById('bar' + i).style.width = percentage + '%';
+            }
+        }
+
+        async function uploadRating() {
+            if (currentRating === 0) {
+                alert('Por favor selecciona una calificación antes de subir');
+                return;
+            }
+
+            if (SCRIPT_URL === 'TU_URL_DE_GOOGLE_SCRIPT_AQUI') {
+                alert('⚠️ Configuración pendiente\n\nPor favor sigue las instrucciones para configurar Google Sheets primero.');
+                return;
+            }
+
+            uploadBtn.disabled = true;
+            loading.style.display = 'block';
+
+            try {
+                const data = {
+                    proyecto: PROJECT_NAME,
+                    calificacion: currentRating,
+                    fecha: new Date().toLocaleString('es-AR')
+                };
+
+                console.log('Enviando datos:', data);
+
+                const response = await fetch(SCRIPT_URL, {
+                    redirect: 'follow',
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'text/plain',
+                    },
+                    body: JSON.stringify(data)
+                });
+
+                console.log('Respuesta recibida');
+
+                alert(`✅ ¡Calificación enviada!\n\nProyecto: ${PROJECT_NAME}\nCalificación: ${currentRating} estrellas\n\nGracias por tu voto.`);
+                
+                setTimeout(() => {
+                    loadStats();
+                }, 2000);
+                
+                currentRating = 0;
+                updateStars();
+                ratingResult.textContent = '';
+
+            } catch (error) {
+                console.error('Error completo:', error);
+                alert('❌ Error al enviar la calificación. Por favor intenta de nuevo.');
+            } finally {
+                uploadBtn.disabled = false;
+                loading.style.display = 'none';
+            }
+        }
+    </script>
+</body>
+</html>
